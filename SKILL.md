@@ -180,13 +180,19 @@ Pick the template that matches the task type. Format must be followed strictly. 
 6. VALIDATE: confirm all 4 mandatory fields + assignee asked
    → if any missing → STOP → ask user → do not proceed
 
-7. create_work_item(
+7. ⚠️  CONFIRMATION LOOP  ← MANDATORY, never skip
+   → Show full task summary to user
+   → Wait for explicit approval
+   → If revision needed: apply fix → re-validate → show summary again
+   → ONLY proceed after user confirms "lanjutkan" / "OK" / "sudah benar"
+
+8. create_work_item(          ← called ONLY after step 7 confirmed
      project_id, name, priority, labels,
      assignees, description_html, state_id,
      start_date, target_date, estimate_point
    )
 
-8. Return: work item identifier, title, project, assignee(s)
+9. Return: work item identifier, title, project, assignee(s)
 ```
 
 ### MCP Tool Reference
@@ -209,6 +215,61 @@ Pick the template that matches the task type. Format must be followed strictly. 
 
 ---
 
+## Confirmation Protocol (Step 7 — Mandatory)
+
+Before calling `create_work_item`, you **MUST** present a full task summary to the user and wait for their explicit confirmation. This step cannot be skipped under any circumstances.
+
+### 7a — Show Full Summary
+
+Display the complete task preview in this format:
+
+```
+📋 RINGKASAN TASK — Mohon dikonfirmasi sebelum dibuat
+
+Project   : [Project Name] ([IDENTIFIER])
+Judul     : [Task Title]
+Tipe      : [Feature / Bug / Research / Technical / Tech Debt]
+Prioritas : [urgent / high / medium / low / none]
+Status    : [State Name]
+Label     : [Label 1], [Label 2]
+Assignee  : [Name] atau (tidak ada)
+Start     : [YYYY-MM-DD] atau (tidak diset)
+Target    : [YYYY-MM-DD] atau (tidak diset)
+Estimasi  : [N point] atau (tidak diset)
+
+--- Deskripsi ---
+[Full description content in markdown, exactly as it will be stored]
+-----------------
+
+✅ Ketik "lanjutkan" atau "OK" untuk membuat task.
+✏️  Ketik "perbaiki" atau sebutkan bagian yang perlu diubah.
+```
+
+### 7b — Handle User Response
+
+**If user confirms** (`lanjutkan`, `ok`, `buat`, `yes`, `sudah benar`, or equivalent):
+→ Proceed immediately to `create_work_item`.
+
+**If user requests a revision**:
+1. Ask which specific part needs to be changed (if not already stated).
+2. Apply the revision.
+3. **Re-validate** the changed field: if the new input is unclear or incomplete, ask again before proceeding.
+4. Once the revision passes validation → return to **step 7a** and show the updated full summary again.
+5. Repeat until user explicitly confirms.
+
+**If user says cancel / batal**:
+→ Stop. Do NOT create the task. Acknowledge cancellation.
+
+### 7c — Revision Re-Validation Rules
+
+When a user provides a revision, apply the same validation rules as during initial input collection:
+
+- If revised field is one of the **4 mandatory fields** and becomes empty/vague → ask again, do not accept.
+- If revised description section violates the template rule (e.g., bug steps are vague) → flag it and ask user to improve before re-showing summary.
+- If revision is clear and valid → apply and re-show summary immediately.
+
+---
+
 ## Rationalization Table — Common Mistakes
 
 | Excuse | Reality |
@@ -220,3 +281,7 @@ Pick the template that matches the task type. Format must be followed strictly. 
 | *"Feature is clear enough, I don't need User Story format."* | **FORBIDDEN.** Reframe to `Sebagai [Role], saya ingin [Fitur] sehingga [Manfaat]`. Ensure Acceptance Criteria exists. |
 | *"I won't ask about assignee to save time."* | **FORBIDDEN.** Always ask about assignee upfront. User may skip — but you cannot. |
 | *"Current state of tech debt is obvious from context."* | **FORBIDDEN.** `Masalah Saat Ini` must be written explicitly and in detail. |
+| *"User said OK so I skipped the summary."* | **FORBIDDEN.** Summary must always be shown FIRST. User confirms after seeing it, not before. |
+| *"I'll create the task and let user edit in Plane later."* | **FORBIDDEN.** Confirmation loop must complete before `create_work_item` is ever called. |
+| *"User already gave all fields, confirmation is unnecessary."* | **FORBIDDEN.** Confirmation loop is always mandatory regardless of how complete the initial input was. |
+| *"Revision looks close enough, I'll accept it."* | **FORBIDDEN.** Re-validate every revision. If unclear, ask again. Only accept when genuinely clear. |

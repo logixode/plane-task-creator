@@ -4,9 +4,9 @@ description: >
   Use when creating, updating, or managing work items (tasks) in Plane via MCP
   Plane tools. Activates when user says "buat task", "tambah issue", "create
   task in Plane", "report bug ke Plane", or mentions Plane project names.
-  Enforces structured task descriptions, mandatory field validation, and
-  template-based formatting for 5 task types: feature, bug, research,
-  technical/infra, and technical debt.
+  Requires active Plane MCP connection; halts with setup guide if MCP is missing
+  or disconnected. Enforces structured task descriptions, mandatory field
+  validation, and 5 task templates.
 license: MIT
 ---
 
@@ -15,6 +15,17 @@ license: MIT
 ## Overview
 
 Standard operating procedure for creating and managing tasks in [Plane](https://plane.so) using MCP Plane tools. Enforces strict input validation, mandatory field checks, and structured description templates based on task type.
+
+## Iron Law 0: Plane MCP Connection (Pre-Flight Gate)
+
+> [!CRITICAL]
+> **Plane MCP is a strict, non-negotiable prerequisite.**
+> This skill CANNOT function without an active, connected Plane MCP server.
+> If Plane MCP tools (`list_projects`, `create_work_item`, etc.) are missing or fail to connect, **HALT IMMEDIATELY**.
+> - **DO NOT** ask user for task fields or details.
+> - **DO NOT** format task templates or simulate task creation.
+> - **DO NOT** generate placeholder or mockup tasks.
+> - **TRIGGER** the [Plane MCP Failure Handler](#plane-mcp-failure-handler) immediately.
 
 ## Iron Laws — Mandatory Fields
 
@@ -162,6 +173,16 @@ Pick the template that matches the task type. Format must be followed strictly. 
 ## MCP Plane Execution Workflow
 
 ```
+0. 🛑 PRE-FLIGHT CHECK (MANDATORY GATE — NEVER SKIP)
+   Verify Plane MCP tool availability & active connectivity:
+   → Check if MCP Plane tools (list_projects, create_work_item) exist in session
+   → Call list_projects() to verify live connection & authentication
+   ├─ FAILED (tools missing, network error, or 401/403 auth error):
+   │    → HALT IMMEDIATELY. Output Plane MCP Failure Handler diagnostic guide.
+   │    → DO NOT ask for task inputs, DO NOT format templates, DO NOT proceed.
+   └─ SUCCESS (connection verified & projects accessible):
+        → Proceed to Step 1.
+
 1. list_projects
    → match project name/identifier → get project_id
 
@@ -194,6 +215,60 @@ Pick the template that matches the task type. Format must be followed strictly. 
 
 9. Return: work item identifier, title, project, assignee(s)
 ```
+
+---
+
+## Plane MCP Failure Handler
+
+If Plane MCP tools are not installed, not detected, or fail to connect during **Step 0**, the agent **MUST HALT IMMEDIATELY**. 
+**NEVER** attempt to ask task questions, write mockup files, or simulate task creation without a working Plane MCP connection.
+
+### Diagnostic & Setup Output Format
+
+When failure occurs, output this exact structured response to the user:
+
+```
+❌ MCP Plane Tidak Terdeteksi atau Gagal Terkoneksi
+
+Skill ini memerlukan koneksi aktif ke MCP Plane untuk dapat mengambil data project dan membuat task.
+Status: [Tools tidak terdaftar / Gagal menghubungi server Plane / Autentikasi ditolak (401/403)]
+
+--- Panduan Konfigurasi MCP Plane ---
+
+1. Dapatkan Kredensial Plane:
+   - PLANE_API_KEY: Buka Plane -> Profile Settings -> Access Tokens -> Buat token baru.
+   - PLANE_WORKSPACE_SLUG: Slug workspace dari URL (contoh: https://app.plane.so/[workspace-slug]/...).
+   - PLANE_BASE_URL: https://api.plane.so (atau domain instance self-hosted).
+
+2. Konfigurasi pada AI Agent:
+
+   • Claude Code (jalankan via terminal atau simpan di ~/.claude.json):
+     claude mcp add plane --env PLANE_API_KEY=xxx --env PLANE_WORKSPACE_SLUG=xxx -- npx -y @zethictech/plane-mcp-server
+
+   • Gemini CLI / Antigravity CLI:
+     Pastikan MCP server 'plane' terdaftar dengan command 'npx -y @zethictech/plane-mcp-server'
+     dan environment variables PLANE_API_KEY, PLANE_WORKSPACE_SLUG, PLANE_BASE_URL aktif.
+
+   • Cursor / Windsurf (.cursor/mcp.json):
+     {
+       "mcpServers": {
+         "plane": {
+           "command": "npx",
+           "args": ["-y", "@zethictech/plane-mcp-server"],
+           "env": {
+             "PLANE_API_KEY": "<your-api-key>",
+             "PLANE_WORKSPACE_SLUG": "<workspace-slug>",
+             "PLANE_BASE_URL": "https://api.plane.so"
+           }
+         }
+       }
+     }
+
+3. Jalankan Ulang:
+   Setelah konfigurasi selesai dan MCP Plane terhubung, silakan jalankan kembali perintah pembuatan task.
+```
+
+---
 
 ### MCP Tool Reference
 
@@ -285,3 +360,7 @@ When a user provides a revision, apply the same validation rules as during initi
 | *"I'll create the task and let user edit in Plane later."* | **FORBIDDEN.** Confirmation loop must complete before `create_work_item` is ever called. |
 | *"User already gave all fields, confirmation is unnecessary."* | **FORBIDDEN.** Confirmation loop is always mandatory regardless of how complete the initial input was. |
 | *"Revision looks close enough, I'll accept it."* | **FORBIDDEN.** Re-validate every revision. If unclear, ask again. Only accept when genuinely clear. |
+| *"Plane MCP is not installed, but I'll write the task to a markdown file or pretend I created it."* | **FORBIDDEN.** Plane MCP is mandatory. Halt immediately at Step 0 and output the Plane MCP Setup Guide. |
+| *"I'll collect all user details and format the template first, then check MCP later."* | **FORBIDDEN.** Step 0 pre-flight check must run first before asking for any user input. |
+| *"MCP returned 401 Unauthorized or network error, I'll ask user to create it manually in Plane UI."* | **FORBIDDEN.** Halt immediately, report the exact error, and guide user on configuring API credentials. |
+| *"MCP server crashed or timed out, I'll proceed without it."* | **FORBIDDEN.** Never proceed without a verified, live Plane MCP connection. |

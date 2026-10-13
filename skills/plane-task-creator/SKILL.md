@@ -16,16 +16,23 @@ license: MIT
 
 Standard operating procedure for creating and managing tasks in [Plane](https://plane.so) using MCP Plane tools. Enforces strict input validation, mandatory field checks, and structured description templates based on task type.
 
-## Iron Law 0: Plane MCP Connection (Pre-Flight Gate)
+## Iron Law 0: Plane MCP Connection (Strict Pre-Flight Gate)
 
 > [!CRITICAL]
-> **Plane MCP is a strict, non-negotiable prerequisite.**
-> This skill CANNOT function without an active, connected Plane MCP server.
-> If Plane MCP tools (`list_projects`, `create_work_item`, etc.) are missing or fail to connect, **HALT IMMEDIATELY**.
+> **Plane MCP is a strict, external prerequisite.**
+> You CANNOT check, search, install, or repair Plane MCP on your own.
+>
+> **STRICT PROHIBITIONS (ZERO TOLERANCE):**
+> 1. **ZERO SHELL COMMANDS:** If Plane MCP tools are not present, **DO NOT run ANY terminal/bash command** (no `npm`, `npx`, `find`, `grep`, `cat`, `curl`, `which`, `ps`, `claude mcp`, etc.).
+> 2. **NO FILESYSTEM SNOOPING:** **DO NOT** search or view user config files (`~/.claude.json`, `.cursor/mcp.json`, settings files, directory scans) trying to locate or inspect MCP configurations.
+> 3. **NO AUTO-INSTALL OR SELF-HEALING:** **DO NOT** attempt to install, activate, or restart the MCP server yourself. MCP setup is strictly the user's manual responsibility.
+> 4. **PASSIVE IN-MEMORY CHECK ONLY:** Verify Plane MCP **solely by checking your active tool declarations**:
+>    - Is the tool `list_projects` available in your tool list?
+>    - **If NO (tools missing):** **HALT IMMEDIATELY**. Output the setup guide text below as your ONLY response. Execute ZERO tool calls.
+>    - **If YES (tools present):** Call `list_projects()` via MCP to verify authentication. If it fails, **HALT IMMEDIATELY** and report the error text.
 > - **DO NOT** ask user for task fields or details.
 > - **DO NOT** format task templates or simulate task creation.
 > - **DO NOT** generate placeholder or mockup tasks.
-> - **TRIGGER** the [Plane MCP Failure Handler](#plane-mcp-failure-handler) immediately.
 
 ## Iron Laws — Mandatory Fields
 
@@ -173,15 +180,19 @@ Pick the template that matches the task type. Format must be followed strictly. 
 ## MCP Plane Execution Workflow
 
 ```
-0. 🛑 PRE-FLIGHT CHECK (MANDATORY GATE — NEVER SKIP)
-   Verify Plane MCP tool availability & active connectivity:
-   → Check if MCP Plane tools (list_projects, create_work_item) exist in session
-   → Call list_projects() to verify live connection & authentication
-   ├─ FAILED (tools missing, network error, or 401/403 auth error):
-   │    → HALT IMMEDIATELY. Output Plane MCP Failure Handler diagnostic guide.
-   │    → DO NOT ask for task inputs, DO NOT format templates, DO NOT proceed.
-   └─ SUCCESS (connection verified & projects accessible):
-        → Proceed to Step 1.
+0. 🛑 PRE-FLIGHT CHECK (PASSIVE IN-MEMORY CHECK — ZERO SHELL COMMANDS)
+   Verify Plane MCP tool availability:
+   → Check your session's active tool list: Is `list_projects` available?
+   ├─ FAILED (tool is absent from active tool declarations):
+   │    → HALT IMMEDIATELY. Output the diagnostic text guide below as your ONLY output.
+   │    → DO NOT run any bash command (no npx, find, grep, etc.). DO NOT read config files.
+   │    → DO NOT ask for task inputs, DO NOT format templates.
+   └─ SUCCESS (tool is present):
+        → Call list_projects() via MCP tool call to verify authentication.
+        ├─ FAILED (error returned / 401 / 403 / timeout):
+        │    → HALT IMMEDIATELY. Output the diagnostic text guide below.
+        └─ SUCCESS:
+             → Proceed to Step 1.
 
 1. list_projects
    → match project name/identifier → get project_id
@@ -220,8 +231,11 @@ Pick the template that matches the task type. Format must be followed strictly. 
 
 ## Plane MCP Failure Handler
 
-If Plane MCP tools are not installed, not detected, or fail to connect during **Step 0**, the agent **MUST HALT IMMEDIATELY**. 
-**NEVER** attempt to ask task questions, write mockup files, or simulate task creation without a working Plane MCP connection.
+If Plane MCP tools are not installed, not detected, or fail to connect during **Step 0**, the agent **MUST HALT IMMEDIATELY**.
+- **DO NOT** run shell commands (`find`, `grep`, `npm`, `npx`, `which`, `ps`, etc.) to locate or auto-install MCP.
+- **DO NOT** inspect or read user settings files (`~/.claude.json`, `.cursor/mcp.json`, etc.).
+- **DO NOT** attempt to fix, start, or install MCP yourself.
+- **RESPOND WITH TEXT ONLY** using the diagnostic template below. Zero tool calls allowed.
 
 ### Diagnostic & Setup Output Format
 
@@ -364,3 +378,6 @@ When a user provides a revision, apply the same validation rules as during initi
 | *"I'll collect all user details and format the template first, then check MCP later."* | **FORBIDDEN.** Step 0 pre-flight check must run first before asking for any user input. |
 | *"MCP returned 401 Unauthorized or network error, I'll ask user to create it manually in Plane UI."* | **FORBIDDEN.** Halt immediately, report the exact error, and guide user on configuring API credentials. |
 | *"MCP server crashed or timed out, I'll proceed without it."* | **FORBIDDEN.** Never proceed without a verified, live Plane MCP connection. |
+| *"MCP is missing, I should run find, grep, or read ~/.claude.json to find where it is installed."* | **FORBIDDEN.** Zero shell commands. Never snoop the filesystem or read user config files. If tool is missing from active declarations, halt immediately. |
+| *"I have terminal access, I will install or start the MCP server for the user via npm/npx/docker."* | **FORBIDDEN.** Never attempt self-installation, activation, or environment modification. MCP setup must be done manually by the user. |
+| *"I'll check if Plane process or port is running via ps/lsof/curl."* | **FORBIDDEN.** Zero shell commands. Verify MCP presence passively via tool declarations only. |

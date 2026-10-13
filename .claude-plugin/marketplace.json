@@ -1,0 +1,13 @@
+{
+  "name": "plane-task-creator",
+  "owner": {
+    "name": "YOUR_USERNAME"
+  },
+  "plugins": [
+    {
+      "name": "plane-task-creator",
+      "source": ".",
+      "description": "AI agent skill for creating structured tasks in Plane via MCP Plane tools"
+    }
+  ]
+}

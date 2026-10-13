@@ -2,7 +2,30 @@
 
 > AI agent skill for creating structured tasks in [Plane](https://plane.so) via MCP Plane tools.
 
-Compatible with: **Claude Code** · **Gemini CLI (AGY)** · **Cursor** · **Windsurf** · any agent supporting `~/.agents/skills/`
+Compatible with: **Gemini CLI** · **Claude Code** · **Cursor** · **Windsurf** · any agent supporting `~/.agents/skills/`
+
+---
+
+## Installation
+
+### Gemini CLI / AGY
+```bash
+gemini extensions install github.com/YOUR_USERNAME/plane
+```
+
+### Claude Code
+```
+/plugin marketplace add YOUR_USERNAME/plane
+/plugin install plane-task-creator@plane-task-creator
+```
+
+### Cursor / Windsurf / other agents
+```bash
+git clone https://github.com/YOUR_USERNAME/plane.git ~/.agents/skills/plane-task-creator \
+  --filter=blob:none --sparse
+cd ~/.agents/skills/plane-task-creator
+git sparse-checkout set skills/task-creator
+```
 
 ---
 
@@ -10,17 +33,18 @@ Compatible with: **Claude Code** · **Gemini CLI (AGY)** · **Cursor** · **Wind
 
 When you say *"buat task"*, *"tambah issue"*, *"create task in Plane"*, or describe a bug/feature/research topic, this skill guides your AI agent to:
 
-- Identify the correct Plane project via `list_projects`
+- Identify the correct Plane project via MCP `list_projects`
 - Enforce **4 mandatory fields**: project, title, priority, labels
-- Always ask about **assignees** before creating
+- Always ask about **assignees** upfront
 - Apply the correct **structured description template** based on task type
-- Call `create_work_item` via MCP Plane with validated, well-formatted data
+- Show a **full task summary** for confirmation before creating
+- Only call `create_work_item` after explicit user confirmation
 
 ### 5 Task Templates
 
-| # | Type | Required Fields |
+| # | Type | Key Required Fields |
 |---|---|---|
-| 1 | ✨ New Feature / New Page | User Story format + Acceptance Criteria |
+| 1 | ✨ New Feature / Page | User Story format + Acceptance Criteria |
 | 2 | 🐛 Bug / Defect | Environment, URL, credentials, actual/expected behavior, steps to reproduce |
 | 3 | 🔬 Research / Riset | Background/question + expected outputs |
 | 4 | ⚙️ Technical / Infrastructure | Action items breakdown |
@@ -30,75 +54,36 @@ When you say *"buat task"*, *"tambah issue"*, *"create task in Plane"*, or descr
 
 ## Requirements
 
-- Plane MCP server configured in your AI agent (see [plane-mcp](https://github.com/makeplane/plane-mcp) or your runtime's MCP docs)
+- Plane MCP server configured in your AI agent
 - Plane workspace with API access
-
----
-
-## Installation
-
-### Option A — One-line install (recommended)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/plane-task-creator/main/install.sh | bash
-```
-
-### Option B — Manual clone
-
-```bash
-git clone https://github.com/YOUR_USERNAME/plane-task-creator.git ~/.agents/skills/plane-task-creator
-```
-
-### Option C — Git subtree (monorepo)
-
-```bash
-git subtree add --prefix=skills/plane-task-creator \
-  https://github.com/YOUR_USERNAME/plane-task-creator.git main --squash
-```
 
 ---
 
 ## Update
 
+### Gemini CLI
 ```bash
-~/.agents/skills/plane-task-creator/update.sh
+gemini extensions update plane-task-creator
 ```
 
-Or manually:
-
-```bash
-cd ~/.agents/skills/plane-task-creator && git pull origin main
+### Claude Code
+```
+/plugin update plane-task-creator
 ```
 
 ---
 
 ## Uninstall
 
+### Gemini CLI
 ```bash
-rm -rf ~/.agents/skills/plane-task-creator
+gemini extensions remove plane-task-creator
 ```
 
----
-
-## Runtime Compatibility
-
-| Runtime | Skills Path | Status |
-|---|---|---|
-| Claude Code | `~/.claude/skills/` or `~/.agents/skills/` | ✅ |
-| Gemini CLI (AGY) | `~/.agents/skills/` | ✅ |
-| Cursor (Agent mode) | `~/.agents/skills/` | ✅ |
-| Windsurf | `~/.agents/skills/` | ✅ |
-| Codex / Copilot CLI | `~/.agents/skills/` | ✅ |
-
-`~/.agents/skills/` is a **cross-runtime standard alias** recognized by all major AI coding agents.
-
----
-
-## Contributing
-
-1. Fork this repo
-2. Edit `SKILL.md`
-3. Open a PR — changes go live for all users on next `update.sh`
+### Claude Code
+```
+/plugin remove plane-task-creator
+```
 
 ---
 

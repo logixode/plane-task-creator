@@ -2,6 +2,6 @@
   "name": "plane-task-creator",
   "version": "1.0.0",
   "description": "AI agent skill for creating structured tasks in Plane via MCP Plane tools. Enforces mandatory field validation, 5 task templates, and pre-submit confirmation loop.",
-  "repository": "https://github.com/YOUR_USERNAME/plane",
+  "repository": "https://github.com/logixode/plane-task-creator",
   "skills": "skills/"
 }

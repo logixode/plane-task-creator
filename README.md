@@ -2,29 +2,46 @@
 
 > AI agent skill for creating structured tasks in [Plane](https://plane.so) via MCP Plane tools.
 
-Compatible with: **Gemini CLI** · **Claude Code** · **Cursor** · **Windsurf** · any agent supporting `~/.agents/skills/`
+Compatible with: **Claude Code** · **Gemini CLI** · **Cursor** · **Windsurf** · **GitHub Copilot** · **IBM watsonx** · any agent supporting the [Agent Skills](https://agentskills.io) standard.
 
 ---
 
 ## Installation
 
-### Gemini CLI / AGY
+### Universal — Skills CLI (recommended)
+
+Works with any agent:
+
 ```bash
-gemini extensions install github.com/YOUR_USERNAME/plane
+npx skills add logixode/plane-task-creator
+```
+
+Pick your agent with `--agent`, install without prompts with `--skill '*'`, or install globally with `--global`:
+
+```bash
+# Install globally (for your user, not just project)
+npx skills add logixode/plane-task-creator --global
+
+# Install for a specific agent
+npx skills add logixode/plane-task-creator --agent cursor
+
+# Install all skills without prompts
+npx skills add logixode/plane-task-creator --skill '*'
+```
+
+---
+
+### Gemini CLI / AGY
+
+```bash
+gemini extensions install github.com/logixode/plane-task-creator
 ```
 
 ### Claude Code
-```
-/plugin marketplace add YOUR_USERNAME/plane
-/plugin install plane-task-creator@plane-task-creator
-```
 
-### Cursor / Windsurf / other agents
-```bash
-git clone https://github.com/YOUR_USERNAME/plane.git ~/.agents/skills/plane-task-creator \
-  --filter=blob:none --sparse
-cd ~/.agents/skills/plane-task-creator
-git sparse-checkout set skills/task-creator
+```
+/plugin marketplace add logixode/plane-task-creator
+/plugin install plane-task-creator@plane-task-creator
 ```
 
 ---
@@ -54,20 +71,24 @@ When you say *"buat task"*, *"tambah issue"*, *"create task in Plane"*, or descr
 
 ## Requirements
 
-- Plane MCP server configured in your AI agent
+- Plane MCP server configured in your AI agent (use [@zethictech/plane-mcp-server](https://github.com/ZethicTech/plane-mcp-server/))
 - Plane workspace with API access
 
 ---
 
 ## Update
 
-### Gemini CLI
 ```bash
-gemini extensions update plane-task-creator
+npx skills update logixode/plane-task-creator
 ```
 
-### Claude Code
-```
+Or per agent:
+
+```bash
+# Gemini CLI
+gemini extensions update plane-task-creator
+
+# Claude Code
 /plugin update plane-task-creator
 ```
 
@@ -75,14 +96,8 @@ gemini extensions update plane-task-creator
 
 ## Uninstall
 
-### Gemini CLI
 ```bash
-gemini extensions remove plane-task-creator
-```
-
-### Claude Code
-```
-/plugin remove plane-task-creator
+npx skills remove plane-task-creator
 ```
 
 ---
